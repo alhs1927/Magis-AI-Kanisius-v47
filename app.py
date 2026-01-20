@@ -416,13 +416,23 @@ with st.sidebar:
         st.markdown("#### 🕊️ Pendampingan Pastoral")
         with st.expander("❤️ Konteks Konseling", expanded=True):
             pas_subjek = st.selectbox("Subjek", ["Siswa", "Guru/Karyawan", "Orang Tua", "Alumni"])
-            pas_masalah = st.selectbox("Isu Utama", ["Akademik", "Keluarga", "Pecarian Jati Diri", "Keputusan Besar (Diskresi)", "Kejenuhan/Burnout"])
+            
+            # --- UPDATE: Opsi Manual ---
+            opsi_masalah = ["Akademik", "Keluarga", "Pencarian Jati Diri", "Keputusan Besar (Diskresi)", "Kejenuhan/Burnout", "Lainnya (Tulis Sendiri)..."]
+            pilihan_masalah = st.selectbox("Isu Utama", opsi_masalah)
+            
+            if pilihan_masalah == "Lainnya (Tulis Sendiri)...":
+                pas_masalah = st.text_input("Tuliskan Isu Spesifik:", placeholder="Misal: Konflik dengan teman sebaya...")
+            else:
+                pas_masalah = pilihan_masalah
+            # ---------------------------
+            
             pas_metode = st.radio("Metode Pendampingan", ["Mendengarkan (Listening)", "Diskresi (Pembedaan Roh)", "Examen (Refleksi Harian)"])
         
         config_details = f"KONFIGURASI PASTORAL: Subjek {pas_subjek}, Masalah {pas_masalah}, Metode {pas_metode}"
         
         auto_prompt_template = (
-            f"Saya sedang mendampingi seorang {pas_subjek} yang mengalami pergumulan tentang {pas_masalah}. \n\n"
+            f"Saya sedang mendampingi seorang {pas_subjek} yang mengalami pergumulan tentang {pas_masalah if pas_masalah else '[Isi Masalah]'}. \n\n"
             f"Mohon berikan panduan percakapan atau refleksi menggunakan pendekatan {pas_metode}. "
             f"Tujuannya adalah membantu subjek menemukan kedamaian (konsolasi) dan mengambil keputusan yang tepat."
         )
