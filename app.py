@@ -380,8 +380,9 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # MENU DENGAN IKON
-    mode = st.selectbox("📌 Pilih Divisi Pelayanan", ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah"])
+    # MENU DENGAN IKON (UPDATE: Tambah Mode Bebas)
+    mode = st.selectbox("📌 Pilih Divisi Pelayanan", 
+                        ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah", "✨ Obrolan Bebas (General Chat)"])
     config_details = ""
     auto_prompt_template = "" 
     
@@ -417,7 +418,6 @@ with st.sidebar:
         with st.expander("❤️ Konteks Konseling", expanded=True):
             pas_subjek = st.selectbox("Subjek", ["Siswa", "Guru/Karyawan", "Orang Tua", "Alumni"])
             
-            # --- UPDATE: Opsi Manual ---
             opsi_masalah = ["Akademik", "Keluarga", "Pencarian Jati Diri", "Keputusan Besar (Diskresi)", "Kejenuhan/Burnout", "Lainnya (Tulis Sendiri)..."]
             pilihan_masalah = st.selectbox("Isu Utama", opsi_masalah)
             
@@ -425,7 +425,6 @@ with st.sidebar:
                 pas_masalah = st.text_input("Tuliskan Isu Spesifik:", placeholder="Misal: Konflik dengan teman sebaya...")
             else:
                 pas_masalah = pilihan_masalah
-            # ---------------------------
             
             pas_metode = st.radio("Metode Pendampingan", ["Mendengarkan (Listening)", "Diskresi (Pembedaan Roh)", "Examen (Refleksi Harian)"])
         
@@ -437,7 +436,7 @@ with st.sidebar:
             f"Tujuannya adalah membantu subjek menemukan kedamaian (konsolasi) dan mengambil keputusan yang tepat."
         )
         
-    else: 
+    elif mode == "Manajemen Sekolah":
         st.markdown("#### 💼 Manajemen Sekolah")
         man_jenis = st.selectbox("Jenis Dokumen", ["Surat Resmi", "Proposal Kegiatan", "Pidato/Sambutan", "Email Internal"])
         man_tone = st.select_slider("Nada Bicara", options=["Tegas & Formal", "Persuasif", "Apresiatif", "Instruktif"])
@@ -450,6 +449,13 @@ with st.sidebar:
             f"Gunakan nada bicara yang {man_tone}. "
             f"Pastikan struktur dokumen rapi dan sesuai standar institusi pendidikan Jesuit."
         )
+    
+    else: # MODE OBROLAN BEBAS
+        st.markdown("#### 💬 Diskusi Terbuka")
+        st.info("Mode ini membebaskan Anda berdiskusi topik apapun dengan perspektif Ignasian.")
+        
+        config_details = "KONFIGURASI: Mode Diskusi Bebas. Berperanlah sebagai 'Ignatian Friend' yang bijaksana, mendalam, dan suportif."
+        auto_prompt_template = "" # Dikosongkan agar user bebas mengetik
 
     # FOOTER AREA
     st.markdown("<br>", unsafe_allow_html=True)
@@ -459,7 +465,7 @@ with st.sidebar:
         
     st.markdown("""
         <div class="sidebar-footer">
-            <strong>Magis AI v48.0</strong><br>
+            <strong>Magis AI v49.0</strong><br>
             Design by: Albertus Henny Setyawan<br>
             Kolese Kanisius Jakarta | 2026
         </div>
@@ -484,37 +490,38 @@ with st.expander("📂 Upload Dokumen & Materi Referensi", expanded=False):
         st.success(f"📚 {len(n)} dokumen berhasil dipelajari.")
 
 # --- CHAT DISPLAY ---
-# Container khusus untuk chat history agar rapi
 chat_container = st.container()
 with chat_container:
     for m in st.session_state.history:
         st.markdown(f"<div class='{'bubble-user' if m['role']=='user' else 'bubble-ai'}'>{m['content'].replace('[DOC_CONTEXT]','')}</div>", unsafe_allow_html=True)
     
-    # Spacer kosong agar chat tidak tertutup form input
+    # Spacer kosong
     st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
 
 # --- SMART INPUT AREA (LEBAR & NYAMAN) ---
 st.markdown("---")
 st.markdown("### ✍️ Area Kerja")
 
-# Menggunakan FORM
 with st.form(key='smart_input_form', clear_on_submit=True):
     # KEY TRICK: Hash template agar auto-refresh
     prompt_key = f"input_{hash(auto_prompt_template)}" 
     
-    # MODIFIKASI: height=250 untuk memperluas area kerja
     user_in = st.text_area(
-        "Instruksi Detil (Silakan edit draf otomatis di bawah ini):", 
+        "Tulis instruksi atau pesan Anda:", 
         value=auto_prompt_template, 
         height=250, 
-        key=prompt_key
+        key=prompt_key,
+        placeholder="Ketik pesan Anda di sini..." # Placeholder muncul jika template kosong
     )
     
     col_act1, col_act2 = st.columns([1, 5])
     with col_act1:
         submitted = st.form_submit_button("🚀 KIRIM PERINTAH", use_container_width=True)
     with col_act2:
-        st.caption("💡 *Tip: Semakin detail instruksi, semakin tajam hasil analisis Ignasian.*")
+        if mode != "✨ Obrolan Bebas (General Chat)":
+            st.caption("💡 *Tip: Edit draf di atas sesuai kebutuhan spesifik Anda.*")
+        else:
+            st.caption("💡 *Tip: Silakan berdiskusi bebas, Magis AI siap menjadi teman berpikir.*")
 
 # LOGIC PEMROSESAN
 if submitted and user_in and provider.is_valid:
