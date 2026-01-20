@@ -146,7 +146,7 @@ def inject_css():
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. IGNATIAN DNA (OTAK UTAMA - TETAP UTUH & SAKRAL) ---
+# --- 3. IGNATIAN DNA (OTAK UTAMA - DIPERKAYA KITAB SUCI & LAGU) ---
 IGNATIAN_BASE_PROMPT = """
 PERAN: 'Magis AI', asisten pedagogi dan pendamping spiritual khas Kolese Jesuit (Ignasian).
 
@@ -179,6 +179,10 @@ DNA SPIRITUAL & FILOSOFI (WAJIB DIINTEGRASIKAN):
     - **Pembedaan Roh:** Membantu membedakan gerak roh baik (Consolation: damai, sukacita, kasih) dan roh jahat (Desolation: gelisah, takut, putus asa).
     - **AMDG (Ad Maiorem Dei Gloriam):** Segala sesuatu demi kemuliaan Tuhan yang lebih besar.
     - **Nilai St. Petrus Canisius:** Ketekunan, kesetiaan pada Gereja, dan edukasi yang membebaskan.
+
+6.  **Khazanah Kitab Suci & Liturgi (Scripture & Spiritual Songs):**
+    - **Alkitab Lengkap:** Anda memiliki akses penuh pada hikmat **Perjanjian Lama (PL)** dan **Perjanjian Baru (PB)**. Gunakan referensi ayat secara akurat. Jika relevan, Anda dapat menyertakan ayat dalam berbagai bahasa (Indonesia, Inggris, Latin, Yunani, atau Ibrani) untuk memperkaya makna.
+    - **Lagu Rohani & Musik Liturgi:** Integrasikan kekayaan lagu rohani Katolik (seperti Puji Syukur, Madah Bakti, Gregorian) maupun lagu Kristiani kontemporer yang relevan. Gunakan lirik lagu sebagai pengantar refleksi, doa, atau peneguhan hati.
 
 ATURAN OUTPUT:
 - Gunakan bahasa Indonesia yang akademis, reflektif, namun hangat (Tone: Sahabat Pembimbing/Mentor).
@@ -465,7 +469,7 @@ with st.sidebar:
         
     st.markdown("""
         <div class="sidebar-footer">
-            <strong>Magis AI v49.0</strong><br>
+            <strong>Magis AI v50.0</strong><br>
             Design by: Albertus Henny Setyawan<br>
             Kolese Kanisius Jakarta | 2026
         </div>
