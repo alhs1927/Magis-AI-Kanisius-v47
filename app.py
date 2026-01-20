@@ -11,6 +11,8 @@ import PIL.Image
 import PyPDF2
 import re
 import datetime
+import requests
+from bs4 import BeautifulSoup
 
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(
@@ -20,134 +22,79 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. CSS MODERN & DYNAMIC THEME ---
-def inject_css():
-    st.markdown("""
+# --- 2. CSS MODERN & DYNAMIC THEME (DENGAN FONT SIZE) ---
+def inject_css(base_size_px):
+    h1_size = int(base_size_px * 2.5)
+    h2_size = int(base_size_px * 2.0)
+    h3_size = int(base_size_px * 1.5)
+    small_size = int(base_size_px * 0.85)
+    
+    st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     
-    /* GLOBAL THEME */
-    .stApp { 
-        background-color: #F8F9FB !important; 
-        color: #1E293B !important; 
-        font-family: 'Plus Jakarta Sans', sans-serif; 
-    }
+    .stApp {{ background-color: #F8F9FB !important; color: #1E293B !important; font-family: 'Plus Jakarta Sans', sans-serif; }}
+    section[data-testid="stSidebar"] {{ background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0; box-shadow: 4px 0 24px rgba(0,0,0,0.02); }}
     
-    /* SIDEBAR STYLING */
-    section[data-testid="stSidebar"] { 
-        background-color: #FFFFFF !important; 
-        border-right: 1px solid #E2E8F0;
-        box-shadow: 4px 0 24px rgba(0,0,0,0.02);
-    }
+    html, body, p, li, .stMarkdown, .stText, label, .stSelectbox {{ font-size: {base_size_px}px !important; line-height: 1.6 !important; }}
+    h1 {{ color: #1B365D !important; letter-spacing: -0.5px; font-size: {h1_size}px !important; }}
+    h2 {{ color: #1B365D !important; letter-spacing: -0.5px; font-size: {h2_size}px !important; }}
+    h3 {{ color: #1B365D !important; letter-spacing: -0.5px; font-size: {h3_size}px !important; }}
     
-    /* TYPOGRAPHY UTAMA */
-    h1, h2, h3 { color: #1B365D !important; letter-spacing: -0.5px; }
-    
-    /* HEADER JUDUL (GRADIENT TEXT) */
-    .magis-title {
-        font-weight: 800; 
-        font-size: 48px; 
+    .magis-title {{
+        font-weight: 800; font-size: {h1_size}px; 
         background: linear-gradient(135deg, #1B365D 0%, #B8860B 100%);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 0px;
-        line-height: 1.1;
-        letter-spacing: -1px;
-    }
+        margin-bottom: 0px; line-height: 1.1; letter-spacing: -1px;
+    }}
+    .magis-tagline {{
+        font-size: {int(base_size_px * 1.1)}px; font-weight: 600; font-style: italic; color: #576F8E; 
+        margin-bottom: 15px; border-left: 3px solid #DAA520; padding-left: 10px;
+    }}
+    .magis-badge {{
+        display: inline-block; background-color: #E0F2FE; color: #0284C7;
+        padding: 4px 12px; border-radius: 20px; font-size: {small_size}px; font-weight: 700; margin-bottom: 20px;
+    }}
     
-    .magis-tagline {
-        font-size: 18px;
-        font-weight: 600;
-        font-style: italic;
-        color: #576F8E; 
-        margin-bottom: 15px;
-        border-left: 3px solid #DAA520;
-        padding-left: 10px;
-    }
-
-    .magis-badge {
-        display: inline-block;
-        background-color: #E0F2FE;
-        color: #0284C7;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 20px;
-    }
+    .bubble-user {{
+        background: linear-gradient(135deg, #1B365D 0%, #2D4F85 100%); color: white; 
+        padding: 20px; border-radius: 20px 20px 4px 20px; margin-left: auto; max-width: 85%;
+        box-shadow: 0 10px 15px -3px rgba(27, 54, 93, 0.2); 
+        font-size: {base_size_px}px; line-height: 1.6;
+    }}
+    .bubble-ai {{
+        background-color: #FFFFFF; color: #334155; border: 1px solid #F1F5F9; border-left: 5px solid #DAA520;
+        padding: 24px; border-radius: 4px 20px 20px 20px; margin-right: auto; max-width: 95%;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+        font-size: {base_size_px}px; line-height: 1.6;
+    }}
     
-    /* CHAT BUBBLES (MODERN CARD STYLE) */
-    .bubble-user {
-        background: linear-gradient(135deg, #1B365D 0%, #2D4F85 100%);
-        color: white; 
-        padding: 20px; 
-        border-radius: 20px 20px 4px 20px; 
-        margin-left: auto; max-width: 85%;
-        box-shadow: 0 10px 15px -3px rgba(27, 54, 93, 0.2);
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    .bubble-ai {
-        background-color: #FFFFFF; 
-        color: #334155; 
-        border: 1px solid #F1F5F9; 
-        border-left: 5px solid #DAA520;
-        padding: 24px; 
-        border-radius: 4px 20px 20px 20px; 
-        margin-right: auto; max-width: 95%;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        font-size: 15px;
-        line-height: 1.6;
-    }
+    .stTextArea textarea {{
+        background-color: #FFFFFF !important; border: 2px solid #E2E8F0 !important;
+        border-radius: 12px !important; padding: 15px !important; 
+        font-size: {base_size_px}px !important;
+        transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }}
+    .stTextArea textarea:focus {{ border-color: #1B365D !important; box-shadow: 0 0 0 3px rgba(27, 54, 93, 0.1) !important; }}
     
-    /* INPUT AREA & FORM STYLING */
-    .stTextArea textarea {
-        background-color: #FFFFFF !important;
-        border: 2px solid #E2E8F0 !important;
-        border-radius: 12px !important;
-        padding: 15px !important;
-        font-size: 15px !important;
-        transition: all 0.3s ease;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .stTextArea textarea:focus {
-        border-color: #1B365D !important;
-        box-shadow: 0 0 0 3px rgba(27, 54, 93, 0.1) !important;
-    }
+    div[data-testid="stForm"] button {{
+        background: linear-gradient(90deg, #1B365D 0%, #162B4A 100%); color: white;
+        font-weight: 700; border-radius: 12px; padding: 10px 0; border: none;
+        transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 6px rgba(27, 54, 93, 0.2);
+        font-size: {base_size_px}px !important;
+    }}
+    div[data-testid="stForm"] button:hover {{ transform: translateY(-2px); box-shadow: 0 10px 15px rgba(27, 54, 93, 0.3); }}
     
-    /* BUTTON STYLING (GRADIENT & SHADOW) */
-    div[data-testid="stForm"] button {
-        background: linear-gradient(90deg, #1B365D 0%, #162B4A 100%);
-        color: white;
-        font-weight: 700;
-        border-radius: 12px;
-        padding: 10px 0;
-        border: none;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 6px rgba(27, 54, 93, 0.2);
-    }
-    div[data-testid="stForm"] button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px rgba(27, 54, 93, 0.3);
-    }
-    
-    /* STATUS INDICATORS */
-    .status-ok { color: #059669; font-weight: bold; font-size: 13px; border: 1px solid #059669; padding: 8px; border-radius: 8px; background: #ECFDF5; display: flex; align-items: center; gap: 5px;}
-    .status-err { color: #DC2626; font-weight: bold; font-size: 13px; border: 1px solid #DC2626; padding: 8px; border-radius: 8px; background: #FEF2F2; display: flex; align-items: center; gap: 5px;}
-    
-    /* FOOTER STYLING */
-    .sidebar-footer {
-        text-align: center;
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px dashed #CBD5E1;
-        color: #64748B;
-        font-size: 12px;
-        line-height: 1.5;
-    }
+    .sidebar-footer {{
+        text-align: center; margin-top: 30px; padding-top: 20px;
+        border-top: 1px dashed #CBD5E1; color: #64748B; font-size: {small_size}px; line-height: 1.5;
+    }}
+    .status-ok {{ color: #059669; font-weight: bold; font-size: {small_size}px; border: 1px solid #059669; padding: 8px; border-radius: 8px; background: #ECFDF5; }}
+    .status-err {{ color: #DC2626; font-weight: bold; font-size: {small_size}px; border: 1px solid #DC2626; padding: 8px; border-radius: 8px; background: #FEF2F2; }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. IGNATIAN DNA (OTAK UTAMA - VERSI 51.0 LENGKAP) ---
+# --- 3. IGNATIAN DNA ---
 IGNATIAN_BASE_PROMPT = """
 PERAN: 'Magis AI', asisten pedagogi dan pendamping spiritual khas Kolese Jesuit (Ignasian).
 
@@ -186,7 +133,8 @@ DNA SPIRITUAL & FILOSOFI (WAJIB DIINTEGRASIKAN):
     - **Lagu Rohani:** Integrasikan lagu Katolik (Puji Syukur, Madah Bakti, Gregorian) dan lagu Kristiani yang relevan sebagai pengantar refleksi.
 
 7.  **Kalender & Konteks Waktu (Nasional & Liturgi):**
-    - **Kalender Nasional Indonesia:** Anda sadar akan hari libur nasional (Lebaran, Natal, Nyepi, Waisak, Kemerdekaan RI) untuk konteks perencanaan sekolah.
+    - **Kalender Nasional Indonesia:** Anda harus sadar akan hari libur nasional dan cuti bersama yang ditetapkan pemerintah Indonesia (misal: Lebaran, Natal, Waisak, Hari Kemerdekaan, dll) untuk membantu perencanaan konteks waktu pembelajaran.
+    - **Kalender Liturgi Katolik Lengkap:** Anda memahami Tahun Liturgi (Tahun A/B/C, Tahun I/II), Masa (Adven, Natal, Prapaskah, Paskah, Biasa), Warna Liturgi, Bacaan Harian, dan Hari Raya/Pesta/Peringatan Wajib.
     - **Kalender Liturgi KWI (Indonesia):** a. Gunakan TANGGAL HARI INI yang diberikan sistem untuk menentukan Hari Raya/Pesta/Peringatan.
       b. Ikuti penanggalan liturgi resmi Gereja Katolik Indonesia (misal: Pesta Nama Pelindung Paroki/Stasi lokal jika disebutkan).
       c. Jika ada perbedaan antara Kalender Universal dan Kalender Indonesia (misal: Peringatan Wajib lokal), utamakan konteks Indonesia.
@@ -207,7 +155,25 @@ ATURAN OUTPUT:
 - FOKUS pada teks dan konten materi. Jangan menyertakan tag gambar.
 """
 
-# --- 4. ENGINE: AUTO-DISCOVERY & SELF HEALING ---
+# --- 4. ENGINE: LITURGI FETCHER ---
+class LiturgiFetcher:
+    @staticmethod
+    def get_today_liturgy():
+        try:
+            today = datetime.date.today()
+            url = f"https://www.imankatolik.or.id/kalender.php?d={today.day}&m={today.month}&y={today.year}"
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+            response = requests.get(url, headers=headers, timeout=3)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                text_content = soup.get_text(separator=' ', strip=True)
+                return f"DATA SCRAPED FROM IMANKATOLIK.OR.ID (TANGGAL {today}):\n{text_content[:3000]}..."
+            else:
+                return f"Gagal mengambil data imankatolik (Status: {response.status_code}). Gunakan pengetahuan internal."
+        except Exception as e:
+            return f"Error koneksi ke imankatolik: {str(e)}. Gunakan pengetahuan internal."
+
+# --- 5. ENGINE: AI PROVIDER (AUTO-DISCOVERY FIX) ---
 class AIProvider:
     def __init__(self, api_key):
         self.api_key = api_key
@@ -230,65 +196,104 @@ class AIProvider:
         try:
             self.client = Groq(api_key=self.api_key)
             models = self.client.models.list()
-            self.available_models = [m.id for m in models.data if 'llama' in m.id or 'mixtral' in m.id]
-            self.available_models.sort(key=lambda x: '70b' in x, reverse=True)
-            if self.available_models:
-                self.active_model = self.available_models[0]
+            # Cari model yang 'llama' atau 'mixtral', urutkan 
+            candidates = [m.id for m in models.data if 'llama' in m.id or 'mixtral' in m.id]
+            # Prioritaskan model besar
+            candidates.sort(key=lambda x: '70b' in x or '8b' in x, reverse=True)
+            
+            if candidates:
+                self.active_model = candidates[0]
                 self.is_valid = True
+            else:
+                self.is_valid = False
         except: pass
 
     def _setup_google(self):
         try:
             genai.configure(api_key=self.api_key)
-            priorities = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
-            self.available_models = priorities 
-            try:
-                all_models = genai.list_models()
-                real_models = [m.name.replace("models/", "") for m in all_models if 'generateContent' in m.supported_generation_methods]
-                if real_models: self.available_models = [p for p in priorities if p in real_models] + [m for m in real_models if m not in priorities]
-            except: pass
             
-            self.active_model = self.available_models[0] if self.available_models else 'gemini-1.5-flash'
-            self.is_valid = True
-        except: pass
+            # --- AUTO-DISCOVERY MODEL (FIX 404 ERROR) ---
+            # 1. Ambil daftar model yang BENAR-BENAR ada di akun user
+            all_models = []
+            try:
+                for m in genai.list_models():
+                    if 'generateContent' in m.supported_generation_methods:
+                        name = m.name.replace("models/", "")
+                        all_models.append(name)
+            except:
+                # Fallback jika list_models gagal (jarang terjadi)
+                all_models = ["gemini-1.5-flash", "gemini-pro"]
+
+            # 2. Daftar Prioritas (Dari yang tercepat/terbaru)
+            priorities = [
+                "gemini-1.5-flash",
+                "gemini-1.5-flash-latest",
+                "gemini-1.5-pro",
+                "gemini-1.5-pro-latest",
+                "gemini-pro",
+                "gemini-1.0-pro"
+            ]
+
+            # 3. Pilih model terbaik yang ADA di daftar user
+            selected_model = None
+            for p in priorities:
+                if p in all_models:
+                    selected_model = p
+                    break
+            
+            # 4. Jika tidak ada di prioritas, ambil sembarang model pertama yang valid
+            if not selected_model and all_models:
+                selected_model = all_models[0]
+            
+            if selected_model:
+                self.active_model = selected_model
+                self.is_valid = True
+            else:
+                # Kasus sangat langka: API Key valid tapi tidak punya akses model apapun
+                self.is_valid = False
+
+        except Exception as e:
+            self.is_valid = False
 
     def generate_stream(self, history, prompt, system_config, image_input=None, lib_text=""):
-        if not self.is_valid: yield "⚠️ Error: API Key bermasalah."; return
+        if not self.is_valid: yield "⚠️ Error: API Key bermasalah atau Model tidak ditemukan."; return
 
+        liturgy_data = LiturgiFetcher.get_today_liturgy()
+        
         full_system = f"{IGNATIAN_BASE_PROMPT}\n\n{system_config}"
         hist_str = "\n".join([f"{'USER' if m['role']=='user' else 'AI'}: {m['content']}" for m in history])
-        
-        # Tambahkan Tanggal Hari Ini agar AI sadar konteks waktu (untuk Liturgi/Libur)
         today_date = datetime.date.today().strftime("%A, %d %B %Y")
         
-        final_prompt = f"TANGGAL HARI INI: {today_date}\n\nRIWAYAT CHAT:\n{hist_str}\n\nSUMBER PUSTAKA:\n{lib_text}\n\nPERMINTAAN USER:\n{prompt}"
+        final_prompt = (
+            f"KONTEKS WAKTU: {today_date}\n"
+            f"DATA LITURGI HARIAN:\n{liturgy_data}\n\n"
+            f"RIWAYAT CHAT:\n{hist_str}\n\n"
+            f"DOKUMEN PENGGUNA:\n{lib_text}\n\n"
+            f"PERMINTAAN USER:\n{prompt}"
+        )
 
-        models_to_try = [self.active_model] + [m for m in self.available_models if m != self.active_model]
-        success = False
+        try:
+            if self.provider_name == "Google":
+                inputs = [f"SYSTEM:\n{full_system}\n\nTASK:\n{final_prompt}"]
+                if image_input: inputs.append(image_input)
+                m = genai.GenerativeModel(self.active_model)
+                res = m.generate_content(inputs, stream=True)
+                for c in res: 
+                    if c.text: yield c.text
+            
+            elif self.provider_name == "Groq":
+                if image_input: yield "ℹ️ [Groq: Gambar diabaikan]\n"
+                stream = self.client.chat.completions.create(
+                    messages=[{"role":"system","content":full_system},{"role":"user","content":final_prompt}],
+                    model=self.active_model, stream=True
+                )
+                for c in stream:
+                    txt = c.choices[0].delta.content
+                    if txt: yield txt
+        except Exception as e:
+            yield f"⚠️ Terjadi kesalahan pada AI ({self.active_model}): {str(e)}"
 
-        for model in models_to_try:
-            if success: break
-            try:
-                if self.provider_name == "Google":
-                    inputs = [f"SYSTEM_INSTRUCTION:\n{full_system}\n\nTASK:\n{final_prompt}"]
-                    if image_input: inputs.append(image_input)
-                    m = genai.GenerativeModel(model)
-                    res = m.generate_content(inputs, stream=True)
-                    for c in res: 
-                        if c.text: yield c.text; success = True
-                
-                elif self.provider_name == "Groq":
-                    if image_input: yield "ℹ️ [Groq: Gambar input diabaikan]\n"
-                    stream = self.client.chat.completions.create(
-                        messages=[{"role":"system","content":full_system},{"role":"user","content":final_prompt}],
-                        model=model, stream=True
-                    )
-                    for c in stream:
-                        txt = c.choices[0].delta.content
-                        if txt: yield txt; success = True
-            except: continue
-
-# --- 5. LOGIC UI & HELPER (DOC ENGINE) ---
+# --- 6. LOGIC UI & HELPER ---
 class DocEngine:
     @staticmethod
     def read(files):
@@ -320,11 +325,8 @@ class DocEngine:
         lines = text.split('\n')
         in_table = False
         table_data = []
-        
         for line in lines:
             clean_line = line.strip()
-            
-            # Deteksi Tabel Markdown
             if "|" in clean_line and len(clean_line) > 2:
                 if re.match(r'^\|?[\s-]+\|[\s-]+\|', clean_line): continue
                 row_cells = [c.strip() for c in clean_line.split('|') if c.strip()]
@@ -332,20 +334,18 @@ class DocEngine:
                     if not in_table: in_table = True; table_data = [row_cells]
                     else: table_data.append(row_cells)
             else:
-                if in_table:
-                    if table_data:
-                        table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
-                        table.style = 'Table Grid'
-                        for r_idx, row_content in enumerate(table_data):
-                            for c_idx, cell_content in enumerate(row_content):
-                                if c_idx < len(table.columns):
-                                    cell = table.cell(r_idx, c_idx)
-                                    cell.text = cell_content.replace('**', '')
-                        DocEngine._set_table_borders(table)
-                        doc.add_paragraph()
+                if in_table and table_data:
+                    table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
+                    table.style = 'Table Grid'
+                    for r_idx, row_content in enumerate(table_data):
+                        for c_idx, cell_content in enumerate(row_content):
+                            if c_idx < len(table.columns):
+                                cell = table.cell(r_idx, c_idx)
+                                cell.text = cell_content.replace('**', '')
+                    DocEngine._set_table_borders(table)
+                    doc.add_paragraph()
                     in_table = False; table_data = []
-
-                # Heading & Text Formatting
+                
                 if clean_line.startswith('### '): doc.add_heading(clean_line.replace('### ', ''), level=3)
                 elif clean_line.startswith('## '): doc.add_heading(clean_line.replace('## ', ''), level=2)
                 elif clean_line.startswith('# '): doc.add_heading(clean_line.replace('# ', ''), level=1)
@@ -353,8 +353,7 @@ class DocEngine:
                     p = doc.add_paragraph()
                     parts = re.split(r'(\*\*.*?\*\*)', clean_line)
                     for part in parts:
-                        if part.startswith('**') and part.endswith('**'):
-                            run = p.add_run(part[2:-2]); run.bold = True
+                        if part.startswith('**') and part.endswith('**'): run = p.add_run(part[2:-2]); run.bold = True
                         else: p.add_run(part.replace('$', ''))
 
     @staticmethod
@@ -362,20 +361,16 @@ class DocEngine:
         doc = Document()
         title = doc.add_heading("Hasil Magis AI - Ignatian Pedagogy", 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
         for msg in history:
             role_p = doc.add_heading(msg['role'].upper(), level=2)
             role_p.runs[0].font.color.rgb = RGBColor(27, 54, 93)
             DocEngine._process_markdown_to_docx(doc, msg['content'])
             doc.add_paragraph("-" * 20)
-
         bio = BytesIO(); doc.save(bio); return bio
 
-# --- 6. APLIKASI UTAMA ---
+# --- 7. APLIKASI UTAMA ---
 if 'history' not in st.session_state: st.session_state.history = []
 if 'library' not in st.session_state: st.session_state.library = {"text":"", "files":[]}
-
-inject_css()
 
 # API Handling
 api_key = None
@@ -384,124 +379,90 @@ try:
     elif "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
 except: pass 
 
-# --- SIDEBAR & SMART INPUT LOGIC ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("""
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://i.imgur.com/UUCgyfV.png" width="110" style="filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));">
-        </div>
-    """, unsafe_allow_html=True)
-    
+    st.markdown("""<div style="text-align: center; margin-bottom: 20px;"><img src="https://i.imgur.com/UUCgyfV.png" width="110" style="filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));"></div>""", unsafe_allow_html=True)
     if not api_key: 
         st.info("🔐 Masukkan Kunci Akses")
         api_key = st.text_input("API Key", type="password", label_visibility="collapsed")
-        
+    
     provider = AIProvider(api_key)
-    if provider.is_valid: st.markdown(f"<div class='status-ok'>✅ Sistem {provider.provider_name} Terhubung</div>", unsafe_allow_html=True)
-    else: st.markdown("<div class='status-err'>⚠️ Menunggu API Key</div>", unsafe_allow_html=True)
+    
+    # INFO MODEL YANG AKTIF
+    if provider.is_valid: 
+        st.markdown(f"<div class='status-ok'>✅ {provider.provider_name}: {provider.active_model}</div>", unsafe_allow_html=True)
+    else: 
+        st.markdown("<div class='status-err'>⚠️ Menunggu API Key / Model</div>", unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # MENU DENGAN IKON (UPDATE: Mode Bebas)
-    mode = st.selectbox("📌 Pilih Divisi Pelayanan", 
-                        ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah", "✨ Obrolan Bebas (General Chat)"])
+    mode = st.selectbox("📌 Pilih Divisi Pelayanan", ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah", "✨ Obrolan Bebas (General Chat)"])
     config_details = ""
     auto_prompt_template = "" 
     
+    # ... (LOGIC KONFIGURASI SAMA SEPERTI SEBELUMNYA) ...
     if mode == "Akademik (Pedagogi)":
         st.markdown("#### 🎓 Konfigurasi Akademik")
         with st.expander("📚 Kelas & Materi", expanded=True):
             input_kelas = st.selectbox("Jenjang Kelas", ["7 SMP", "8 SMP", "9 SMP", "10 SMA (Fase E)", "11 SMA (Fase F)", "12 SMA (Fase F)"])
             input_mapel = st.text_input("Mata Pelajaran", placeholder="Misal: Sejarah Indonesia")
             input_kd = st.text_area("Kompetensi Dasar (KD) / CP", placeholder="Paste CP/Tujuan Pembelajaran...", height=80)
-            
         with st.expander("🧠 Parameter Soal & Tugas"):
-            input_bloom = st.multiselect("Level Kognitif (Bloom)", 
-                                         ["C1 (Mengingat)", "C2 (Memahami)", "C3 (Menerapkan)", "C4 (Menganalisis)", "C5 (Mengevaluasi)", "C6 (Mencipta)"],
-                                         default=["C4 (Menganalisis)", "C5 (Mengevaluasi)"])
+            input_bloom = st.multiselect("Level Kognitif (Bloom)", ["C1 (Mengingat)", "C2 (Memahami)", "C3 (Menerapkan)", "C4 (Menganalisis)", "C5 (Mengevaluasi)", "C6 (Mencipta)"], default=["C4 (Menganalisis)", "C5 (Mengevaluasi)"])
             input_difficulty = st.select_slider("Tingkat Kesulitan", options=["Mudah", "Sedang", "HOTS (Sulit)", "Olimpiade"])
-            
         with st.expander("🎨 Gaya & Pendekatan Ignasian"):
             input_gaya = st.selectbox("Gaya Bahasa", ["Formal Akademis", "Sokratik (Bertanya Balik)", "Storytelling (Naratif)", "Simpel & Lugas"])
             input_ipp_focus = st.multiselect("Fokus IPP", ["Context", "Experience", "Reflection", "Action", "Evaluation"], default=["Reflection"])
-
         config_details = f"KONFIGURASI: Kelas {input_kelas}, Mapel {input_mapel}, Gaya {input_gaya}, IPP {','.join(input_ipp_focus)}"
-        
-        auto_prompt_template = (
-            f"Saya guru {input_mapel} untuk kelas {input_kelas}. \n"
-            f"Topik: {input_kd if input_kd else '[Isi Topik]'}. \n\n"
-            f"Tolong buatkan [Rencana Pembelajaran / 5 Soal PG / Studi Kasus] "
-            f"dengan level kognitif {', '.join(input_bloom)} dan tingkat kesulitan {input_difficulty}. "
-            f"Tekankan pada aspek {', '.join(input_ipp_focus)}."
-        )
+        auto_prompt_template = f"Saya guru {input_mapel} untuk kelas {input_kelas}.\nTopik: {input_kd if input_kd else '[Isi Topik]'}.\n\nTolong buatkan [Rencana Pembelajaran / 5 Soal PG / Studi Kasus] dengan level kognitif {', '.join(input_bloom)} dan tingkat kesulitan {input_difficulty}. Tekankan pada aspek {', '.join(input_ipp_focus)}."
 
     elif mode == "Pastoral & Diskresi":
         st.markdown("#### 🕊️ Pendampingan Pastoral")
         with st.expander("❤️ Konteks Konseling", expanded=True):
             pas_subjek = st.selectbox("Subjek", ["Siswa", "Guru/Karyawan", "Orang Tua", "Alumni"])
-            
             opsi_masalah = ["Akademik", "Keluarga", "Pencarian Jati Diri", "Keputusan Besar (Diskresi)", "Kejenuhan/Burnout", "Lainnya (Tulis Sendiri)..."]
             pilihan_masalah = st.selectbox("Isu Utama", opsi_masalah)
-            
-            if pilihan_masalah == "Lainnya (Tulis Sendiri)...":
-                pas_masalah = st.text_input("Tuliskan Isu Spesifik:", placeholder="Misal: Konflik dengan teman sebaya...")
-            else:
-                pas_masalah = pilihan_masalah
-            
+            if pilihan_masalah == "Lainnya (Tulis Sendiri)...": pas_masalah = st.text_input("Tuliskan Isu Spesifik:", placeholder="Misal: Konflik dengan teman sebaya...")
+            else: pas_masalah = pilihan_masalah
             pas_metode = st.radio("Metode Pendampingan", ["Mendengarkan (Listening)", "Diskresi (Pembedaan Roh)", "Examen (Refleksi Harian)"])
-        
         config_details = f"KONFIGURASI PASTORAL: Subjek {pas_subjek}, Masalah {pas_masalah}, Metode {pas_metode}"
-        
-        auto_prompt_template = (
-            f"Saya sedang mendampingi seorang {pas_subjek} yang mengalami pergumulan tentang {pas_masalah if pas_masalah else '[Isi Masalah]'}. \n\n"
-            f"Mohon berikan panduan percakapan atau refleksi menggunakan pendekatan {pas_metode}. "
-            f"Tujuannya adalah membantu subjek menemukan kedamaian (konsolasi) dan mengambil keputusan yang tepat."
-        )
-        
+        auto_prompt_template = f"Saya sedang mendampingi seorang {pas_subjek} yang mengalami pergumulan tentang {pas_masalah if pas_masalah else '[Isi Masalah]'}.\n\nMohon berikan panduan percakapan atau refleksi menggunakan pendekatan {pas_metode}. Tujuannya adalah membantu subjek menemukan kedamaian (konsolasi) dan mengambil keputusan yang tepat."
+
     elif mode == "Manajemen Sekolah":
         st.markdown("#### 💼 Manajemen Sekolah")
         man_jenis = st.selectbox("Jenis Dokumen", ["Surat Resmi", "Proposal Kegiatan", "Pidato/Sambutan", "Email Internal"])
         man_tone = st.select_slider("Nada Bicara", options=["Tegas & Formal", "Persuasif", "Apresiatif", "Instruktif"])
         man_topik = st.text_input("Topik/Acara", placeholder="Misal: Hari Guru")
-        
         config_details = f"KONFIGURASI MANAJEMEN: Dokumen {man_jenis}, Tone {man_tone}"
-        
-        auto_prompt_template = (
-            f"Buatkan draf {man_jenis} bertema '{man_topik if man_topik else '[Isi Topik]'}'. \n\n"
-            f"Gunakan nada bicara yang {man_tone}. "
-            f"Pastikan struktur dokumen rapi dan sesuai standar institusi pendidikan Jesuit."
-        )
+        auto_prompt_template = f"Buatkan draf {man_jenis} bertema '{man_topik if man_topik else '[Isi Topik]'}'.\n\nGunakan nada bicara yang {man_tone}. Pastikan struktur dokumen rapi dan sesuai standar institusi pendidikan Jesuit."
     
-    else: # MODE OBROLAN BEBAS
+    else: 
         st.markdown("#### 💬 Diskusi Terbuka")
         st.info("Mode ini membebaskan Anda berdiskusi topik apapun dengan perspektif Ignasian.")
-        
         config_details = "KONFIGURASI: Mode Diskusi Bebas. Berperanlah sebagai 'Ignatian Friend' yang bijaksana, mendalam, dan suportif."
         auto_prompt_template = "" 
 
-    # FOOTER AREA
+    # --- FITUR AKSESIBILITAS FONT ---
+    st.markdown("---")
+    st.markdown("### 👁️ Tampilan & Aksesibilitas")
+    font_scale_label = st.select_slider(
+        "Ukuran Huruf Aplikasi",
+        options=["Kecil", "Sedang", "Besar", "Ekstra Besar"],
+        value="Sedang"
+    )
+    size_map = {"Kecil": 14, "Sedang": 16, "Besar": 18, "Ekstra Besar": 22}
+    current_font_size = size_map[font_scale_label]
+
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🔄 Reset Sesi Chat", use_container_width=True): 
-        st.session_state.history = []
-        st.rerun()
-        
-    st.markdown("""
-        <div class="sidebar-footer">
-            <strong>Magis AI v51.0</strong><br>
-            Design by: Albertus Henny Setyawan<br>
-            Kolese Kanisius Jakarta | 2026
-        </div>
-    """, unsafe_allow_html=True)
+    if st.button("🔄 Reset Sesi Chat", use_container_width=True): st.session_state.history = []; st.rerun()
+    st.markdown("""<div class="sidebar-footer"><strong>Magis AI v54.0</strong><br>Design by: Albertus Henny Setyawan<br>Kolese Kanisius Jakarta | 2026</div>""", unsafe_allow_html=True)
+
+# INJECT CSS
+inject_css(current_font_size)
 
 # --- MAIN UI ---
 c1,c2 = st.columns([3,1])
-with c1: 
-    st.markdown(f'''
-    <div class="magis-title">MAGIS AI</div>
-    <div class="magis-tagline">Mitra Diskresi Guru Ignasian</div>
-    <div class="magis-badge">Mode Aktif: {mode}</div>
-    ''', unsafe_allow_html=True)
-
+with c1: st.markdown(f'''<div class="magis-title">MAGIS AI</div><div class="magis-tagline">Mitra Diskresi Guru Ignasian</div><div class="magis-badge">Mode Aktif: {mode}</div>''', unsafe_allow_html=True)
 with st.expander("📂 Upload Dokumen & Materi Referensi", expanded=False):
     st.markdown("Upload RPP, E-Book, atau Gambar Soal untuk dianalisis AI.")
     files = st.file_uploader("Pilih file (PDF, Docx, TXT)", accept_multiple_files=True)
@@ -511,41 +472,22 @@ with st.expander("📂 Upload Dokumen & Materi Referensi", expanded=False):
         st.session_state.library = {"text": t, "files": n}
         st.success(f"📚 {len(n)} dokumen berhasil dipelajari.")
 
-# --- CHAT DISPLAY ---
 chat_container = st.container()
 with chat_container:
-    for m in st.session_state.history:
-        st.markdown(f"<div class='{'bubble-user' if m['role']=='user' else 'bubble-ai'}'>{m['content'].replace('[DOC_CONTEXT]','')}</div>", unsafe_allow_html=True)
-    
-    # Spacer kosong
+    for m in st.session_state.history: st.markdown(f"<div class='{'bubble-user' if m['role']=='user' else 'bubble-ai'}'>{m['content'].replace('[DOC_CONTEXT]','')}</div>", unsafe_allow_html=True)
     st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
 
-# --- SMART INPUT AREA (LEBAR & NYAMAN) ---
 st.markdown("---")
 st.markdown("### ✍️ Area Kerja")
-
 with st.form(key='smart_input_form', clear_on_submit=True):
-    # KEY TRICK: Hash template agar auto-refresh
     prompt_key = f"input_{hash(auto_prompt_template)}" 
-    
-    user_in = st.text_area(
-        "Tulis instruksi atau pesan Anda:", 
-        value=auto_prompt_template, 
-        height=250, 
-        key=prompt_key,
-        placeholder="Ketik pesan Anda di sini..." # Placeholder muncul jika template kosong
-    )
-    
+    user_in = st.text_area("Tulis instruksi atau pesan Anda:", value=auto_prompt_template, height=250, key=prompt_key, placeholder="Ketik pesan Anda di sini...")
     col_act1, col_act2 = st.columns([1, 5])
-    with col_act1:
-        submitted = st.form_submit_button("🚀 KIRIM PERINTAH", use_container_width=True)
-    with col_act2:
-        if mode != "✨ Obrolan Bebas (General Chat)":
-            st.caption("💡 *Tip: Edit draf di atas sesuai kebutuhan spesifik Anda.*")
-        else:
-            st.caption("💡 *Tip: Silakan berdiskusi bebas, Magis AI siap menjadi teman berpikir.*")
+    with col_act1: submitted = st.form_submit_button("🚀 KIRIM PERINTAH", use_container_width=True)
+    with col_act2: 
+        if mode != "✨ Obrolan Bebas (General Chat)": st.caption("💡 *Tip: Edit draf di atas sesuai kebutuhan spesifik Anda.*")
+        else: st.caption("💡 *Tip: Silakan berdiskusi bebas, Magis AI siap menjadi teman berpikir.*")
 
-# LOGIC PEMROSESAN
 if submitted and user_in and provider.is_valid:
     final_msg = user_in
     if st.session_state.library["text"]: final_msg += " [DOC_CONTEXT]"
@@ -553,7 +495,7 @@ if submitted and user_in and provider.is_valid:
     st.rerun()
 
 if st.session_state.history and st.session_state.history[-1]['role'] == 'user':
-    with st.spinner("✨ Sedang meracik materi dengan perspektif Ignasian..."):
+    with st.spinner("✨ Magis AI sedang memeriksa ImanKatolik.or.id & meracik materi..."):
         full_res = ""
         box = st.empty()
         last_usr = st.session_state.history[-1]['content']
@@ -562,17 +504,10 @@ if st.session_state.history and st.session_state.history[-1]['role'] == 'user':
         for chk in provider.generate_stream(st.session_state.history[:-1], last_usr, config_details, img_data, st.session_state.library["text"]):
             full_res += chk
             box.markdown(f"<div class='bubble-ai'>{full_res}</div>", unsafe_allow_html=True)
-            
         st.session_state.history.append({"role":"assistant", "content":full_res})
         st.rerun()
 
 if st.session_state.history:
     st.markdown("### 📥 Ekspor Hasil")
     docx = DocEngine.create_word(st.session_state.history)
-    st.download_button(
-        label="Download Dokumen Word (.docx)", 
-        data=docx, 
-        file_name="Hasil-MagisAI.docx", 
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        use_container_width=True
-    )
+    st.download_button(label="Download Dokumen Word (.docx)", data=docx, file_name="Hasil-MagisAI.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
