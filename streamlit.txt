@@ -1,6 +1,0 @@
-streamlit
-google-generativeai
-groq
-python-docx
-Pillow
-PyPDF2
