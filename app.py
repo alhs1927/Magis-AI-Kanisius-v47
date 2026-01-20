@@ -10,6 +10,7 @@ from io import BytesIO
 import PIL.Image
 import PyPDF2
 import re
+import datetime
 
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(
@@ -146,7 +147,7 @@ def inject_css():
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. IGNATIAN DNA (OTAK UTAMA - DIPERKAYA KITAB SUCI & LAGU) ---
+# --- 3. IGNATIAN DNA (OTAK UTAMA - VERSI 51.0 LENGKAP) ---
 IGNATIAN_BASE_PROMPT = """
 PERAN: 'Magis AI', asisten pedagogi dan pendamping spiritual khas Kolese Jesuit (Ignasian).
 
@@ -180,9 +181,19 @@ DNA SPIRITUAL & FILOSOFI (WAJIB DIINTEGRASIKAN):
     - **AMDG (Ad Maiorem Dei Gloriam):** Segala sesuatu demi kemuliaan Tuhan yang lebih besar.
     - **Nilai St. Petrus Canisius:** Ketekunan, kesetiaan pada Gereja, dan edukasi yang membebaskan.
 
-6.  **Khazanah Kitab Suci & Liturgi (Scripture & Spiritual Songs):**
-    - **Alkitab Lengkap:** Anda memiliki akses penuh pada hikmat **Perjanjian Lama (PL)** dan **Perjanjian Baru (PB)**. Gunakan referensi ayat secara akurat. Jika relevan, Anda dapat menyertakan ayat dalam berbagai bahasa (Indonesia, Inggris, Latin, Yunani, atau Ibrani) untuk memperkaya makna.
-    - **Lagu Rohani & Musik Liturgi:** Integrasikan kekayaan lagu rohani Katolik (seperti Puji Syukur, Madah Bakti, Gregorian) maupun lagu Kristiani kontemporer yang relevan. Gunakan lirik lagu sebagai pengantar refleksi, doa, atau peneguhan hati.
+6.  **Khazanah Kitab Suci & Musik Liturgi:**
+    - **Alkitab Lengkap:** Akses penuh pada hikmat Perjanjian Lama & Baru. Gunakan referensi ayat secara akurat.
+    - **Lagu Rohani:** Integrasikan lagu Katolik (Puji Syukur, Madah Bakti, Gregorian) dan lagu Kristiani yang relevan sebagai pengantar refleksi.
+
+7.  **Kalender & Konteks Waktu (Nasional & Liturgi):**
+    - **Kalender Nasional Indonesia:** Anda harus sadar akan hari libur nasional dan cuti bersama yang ditetapkan pemerintah Indonesia (misal: Lebaran, Natal, Waisak, Hari Kemerdekaan, dll) untuk membantu perencanaan konteks waktu pembelajaran.
+    - **Kalender Liturgi Katolik Lengkap:** Anda memahami Tahun Liturgi (Tahun A/B/C, Tahun I/II), Masa (Adven, Natal, Prapaskah, Paskah, Biasa), Warna Liturgi, Bacaan Harian, dan Hari Raya/Pesta/Peringatan Wajib.
+
+8.  **Tradisi, Sejarah, & Kekayaan Gereja:**
+    - **Kumpulan Doa:** Menyediakan referensi doa-doa Katolik lengkap (Doa Dasar, Brevir, Novena, Jalan Salib, Rosario).
+    - **Kisah Santo-Santa:** Memiliki pengetahuan mendalam tentang riwayat hidup, keutamaan, dan tanggal pesta para Santo-Santa pelindung (Hagiografi).
+    - **Sejarah Alkitab:** Memahami konteks historis, geografis, dan budaya zaman Alkitab.
+    - **Tata Perayaan Ekaristi (TPE):** Mengacu pada TPE Terkini (Revisi 2020/2021 di Indonesia) dalam menjelaskan struktur misa.
 
 ATURAN OUTPUT:
 - Gunakan bahasa Indonesia yang akademis, reflektif, namun hangat (Tone: Sahabat Pembimbing/Mentor).
@@ -243,7 +254,11 @@ class AIProvider:
 
         full_system = f"{IGNATIAN_BASE_PROMPT}\n\n{system_config}"
         hist_str = "\n".join([f"{'USER' if m['role']=='user' else 'AI'}: {m['content']}" for m in history])
-        final_prompt = f"RIWAYAT CHAT:\n{hist_str}\n\nSUMBER PUSTAKA:\n{lib_text}\n\nPERMINTAAN USER:\n{prompt}"
+        
+        # Tambahkan Tanggal Hari Ini agar AI sadar konteks waktu (untuk Liturgi/Libur)
+        today_date = datetime.date.today().strftime("%A, %d %B %Y")
+        
+        final_prompt = f"TANGGAL HARI INI: {today_date}\n\nRIWAYAT CHAT:\n{hist_str}\n\nSUMBER PUSTAKA:\n{lib_text}\n\nPERMINTAAN USER:\n{prompt}"
 
         models_to_try = [self.active_model] + [m for m in self.available_models if m != self.active_model]
         success = False
@@ -384,7 +399,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # MENU DENGAN IKON (UPDATE: Tambah Mode Bebas)
+    # MENU DENGAN IKON (UPDATE: Mode Bebas)
     mode = st.selectbox("📌 Pilih Divisi Pelayanan", 
                         ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah", "✨ Obrolan Bebas (General Chat)"])
     config_details = ""
@@ -459,7 +474,7 @@ with st.sidebar:
         st.info("Mode ini membebaskan Anda berdiskusi topik apapun dengan perspektif Ignasian.")
         
         config_details = "KONFIGURASI: Mode Diskusi Bebas. Berperanlah sebagai 'Ignatian Friend' yang bijaksana, mendalam, dan suportif."
-        auto_prompt_template = "" # Dikosongkan agar user bebas mengetik
+        auto_prompt_template = "" 
 
     # FOOTER AREA
     st.markdown("<br>", unsafe_allow_html=True)
@@ -469,7 +484,7 @@ with st.sidebar:
         
     st.markdown("""
         <div class="sidebar-footer">
-            <strong>Magis AI v50.0</strong><br>
+            <strong>Magis AI v51.0</strong><br>
             Design by: Albertus Henny Setyawan<br>
             Kolese Kanisius Jakarta | 2026
         </div>
