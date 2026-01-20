@@ -19,63 +19,134 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. CSS MODERN & JESUIT THEME ---
+# --- 2. CSS MODERN & DYNAMIC THEME ---
 def inject_css():
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     
-    .stApp { background-color: #F8FAFC !important; color: #0F172A !important; font-family: 'Plus Jakarta Sans', sans-serif; }
-    section[data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0; }
+    /* GLOBAL THEME */
+    .stApp { 
+        background-color: #F8F9FB !important; 
+        color: #1E293B !important; 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+    }
     
-    /* JUDUL DIPERBESAR & WARNA EMAS */
+    /* SIDEBAR STYLING */
+    section[data-testid="stSidebar"] { 
+        background-color: #FFFFFF !important; 
+        border-right: 1px solid #E2E8F0;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+    }
+    
+    /* TYPOGRAPHY UTAMA */
+    h1, h2, h3 { color: #1B365D !important; letter-spacing: -0.5px; }
+    
+    /* HEADER JUDUL (GRADIENT TEXT) */
     .magis-title {
         font-weight: 800; 
-        font-size: 42px; 
-        background: linear-gradient(90deg, #DAA520, #FFD700, #B8860B);
+        font-size: 48px; 
+        background: linear-gradient(135deg, #1B365D 0%, #B8860B 100%);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         margin-bottom: 0px;
-        line-height: 1.2;
+        line-height: 1.1;
+        letter-spacing: -1px;
     }
     
-    /* TAGLINE BARU */
     .magis-tagline {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
         font-style: italic;
-        color: #1B365D; 
-        margin-bottom: 10px;
+        color: #576F8E; 
+        margin-bottom: 15px;
+        border-left: 3px solid #DAA520;
+        padding-left: 10px;
     }
 
-    .magis-subtitle { font-size: 14px; color: #64748B; margin-bottom: 20px; font-weight: 500;}
+    .magis-badge {
+        display: inline-block;
+        background-color: #E0F2FE;
+        color: #0284C7;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
     
+    /* CHAT BUBBLES (MODERN CARD STYLE) */
     .bubble-user {
-        background-color: #1B365D; color: white; padding: 16px; 
-        border-radius: 12px 12px 0 12px; margin-left: auto; max-width: 85%;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #1B365D 0%, #2D4F85 100%);
+        color: white; 
+        padding: 20px; 
+        border-radius: 20px 20px 4px 20px; 
+        margin-left: auto; max-width: 85%;
+        box-shadow: 0 10px 15px -3px rgba(27, 54, 93, 0.2);
+        font-size: 15px;
+        line-height: 1.6;
     }
     .bubble-ai {
-        background-color: #FFFFFF; color: #0F172A; 
-        border: 1px solid #E2E8F0; border-left: 4px solid #C5A059;
-        padding: 16px; border-radius: 12px 12px 12px 0; margin-right: auto; max-width: 95%;
+        background-color: #FFFFFF; 
+        color: #334155; 
+        border: 1px solid #F1F5F9; 
+        border-left: 5px solid #DAA520;
+        padding: 24px; 
+        border-radius: 4px 20px 20px 20px; 
+        margin-right: auto; max-width: 95%;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        font-size: 15px;
+        line-height: 1.6;
     }
     
-    /* Button Kirim Styling */
+    /* INPUT AREA & FORM STYLING */
+    .stTextArea textarea {
+        background-color: #FFFFFF !important;
+        border: 2px solid #E2E8F0 !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+        font-size: 15px !important;
+        transition: all 0.3s ease;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .stTextArea textarea:focus {
+        border-color: #1B365D !important;
+        box-shadow: 0 0 0 3px rgba(27, 54, 93, 0.1) !important;
+    }
+    
+    /* BUTTON STYLING (GRADIENT & SHADOW) */
     div[data-testid="stForm"] button {
-        background-color: #1B365D;
+        background: linear-gradient(90deg, #1B365D 0%, #162B4A 100%);
         color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        width: 100%;
+        font-weight: 700;
+        border-radius: 12px;
+        padding: 10px 0;
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(27, 54, 93, 0.2);
+    }
+    div[data-testid="stForm"] button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px rgba(27, 54, 93, 0.3);
     }
     
-    .status-ok { color: #059669; font-weight: bold; font-size: 12px; border: 1px solid #059669; padding: 4px; border-radius: 5px; background: #ECFDF5; }
-    .status-err { color: #DC2626; font-weight: bold; font-size: 12px; border: 1px solid #DC2626; padding: 4px; border-radius: 5px; background: #FEF2F2; }
+    /* STATUS INDICATORS */
+    .status-ok { color: #059669; font-weight: bold; font-size: 13px; border: 1px solid #059669; padding: 8px; border-radius: 8px; background: #ECFDF5; display: flex; align-items: center; gap: 5px;}
+    .status-err { color: #DC2626; font-weight: bold; font-size: 13px; border: 1px solid #DC2626; padding: 8px; border-radius: 8px; background: #FEF2F2; display: flex; align-items: center; gap: 5px;}
+    
+    /* FOOTER STYLING */
+    .sidebar-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px dashed #CBD5E1;
+        color: #64748B;
+        font-size: 12px;
+        line-height: 1.5;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. IGNATIAN DNA (OTAK UTAMA - TETAP UTUH) ---
+# --- 3. IGNATIAN DNA (OTAK UTAMA - TETAP UTUH & SAKRAL) ---
 IGNATIAN_BASE_PROMPT = """
 PERAN: 'Magis AI', asisten pedagogi dan pendamping spiritual khas Kolese Jesuit (Ignasian).
 
@@ -294,46 +365,45 @@ except: pass
 # --- SIDEBAR & SMART INPUT LOGIC ---
 with st.sidebar:
     st.markdown("""
-        <div style="text-align: center; margin-bottom: 10px;">
-            <img src="https://i.imgur.com/UUCgyfV.png" width="100">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://i.imgur.com/UUCgyfV.png" width="110" style="filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));">
         </div>
     """, unsafe_allow_html=True)
     
-    # MODIFIKASI: Versi dipindahkan ke bawah, tombol Reset juga dipindah.
-    # Disini hanya Input API Key di bagian atas
-    
-    if not api_key: api_key = st.text_input("🔑 API Key", type="password")
+    if not api_key: 
+        st.info("🔐 Masukkan Kunci Akses")
+        api_key = st.text_input("API Key", type="password", label_visibility="collapsed")
+        
     provider = AIProvider(api_key)
-    if provider.is_valid: st.markdown(f"<div class='status-ok'>✅ {provider.provider_name} Aktif</div>", unsafe_allow_html=True)
-    else: st.markdown("<div class='status-err'>⚠️ Menunggu Kunci</div>", unsafe_allow_html=True)
+    if provider.is_valid: st.markdown(f"<div class='status-ok'>✅ Sistem {provider.provider_name} Terhubung</div>", unsafe_allow_html=True)
+    else: st.markdown("<div class='status-err'>⚠️ Menunggu API Key</div>", unsafe_allow_html=True)
     
     st.markdown("---")
     
-    mode = st.selectbox("1. Divisi Pelayanan", ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah"])
+    # MENU DENGAN IKON
+    mode = st.selectbox("📌 Pilih Divisi Pelayanan", ["Akademik (Pedagogi)", "Pastoral & Diskresi", "Manajemen Sekolah"])
     config_details = ""
-    auto_prompt_template = "" # Variabel untuk text input otomatis
+    auto_prompt_template = "" 
     
     if mode == "Akademik (Pedagogi)":
-        st.markdown("#### ⚙️ Detail Akademik")
-        with st.expander("Konfigurasi Kelas & Materi", expanded=True):
+        st.markdown("#### 🎓 Konfigurasi Akademik")
+        with st.expander("📚 Kelas & Materi", expanded=True):
             input_kelas = st.selectbox("Jenjang Kelas", ["7 SMP", "8 SMP", "9 SMP", "10 SMA (Fase E)", "11 SMA (Fase F)", "12 SMA (Fase F)"])
             input_mapel = st.text_input("Mata Pelajaran", placeholder="Misal: Sejarah Indonesia")
             input_kd = st.text_area("Kompetensi Dasar (KD) / CP", placeholder="Paste CP/Tujuan Pembelajaran...", height=80)
             
-        with st.expander("Parameter Soal / Tugas"):
+        with st.expander("🧠 Parameter Soal & Tugas"):
             input_bloom = st.multiselect("Level Kognitif (Bloom)", 
                                          ["C1 (Mengingat)", "C2 (Memahami)", "C3 (Menerapkan)", "C4 (Menganalisis)", "C5 (Mengevaluasi)", "C6 (Mencipta)"],
                                          default=["C4 (Menganalisis)", "C5 (Mengevaluasi)"])
             input_difficulty = st.select_slider("Tingkat Kesulitan", options=["Mudah", "Sedang", "HOTS (Sulit)", "Olimpiade"])
             
-        with st.expander("Gaya & Pendekatan"):
+        with st.expander("🎨 Gaya & Pendekatan Ignasian"):
             input_gaya = st.selectbox("Gaya Bahasa", ["Formal Akademis", "Sokratik (Bertanya Balik)", "Storytelling (Naratif)", "Simpel & Lugas"])
             input_ipp_focus = st.multiselect("Fokus IPP", ["Context", "Experience", "Reflection", "Action", "Evaluation"], default=["Reflection"])
 
-        # String untuk System Instruction
         config_details = f"KONFIGURASI: Kelas {input_kelas}, Mapel {input_mapel}, Gaya {input_gaya}, IPP {','.join(input_ipp_focus)}"
         
-        # String untuk Auto-Input User
         auto_prompt_template = (
             f"Saya guru {input_mapel} untuk kelas {input_kelas}. \n"
             f"Topik: {input_kd if input_kd else '[Isi Topik]'}. \n\n"
@@ -343,10 +413,10 @@ with st.sidebar:
         )
 
     elif mode == "Pastoral & Diskresi":
-        st.markdown("#### 🕊️ Detail Pastoral")
-        with st.expander("Konteks Bimbingan", expanded=True):
+        st.markdown("#### 🕊️ Pendampingan Pastoral")
+        with st.expander("❤️ Konteks Konseling", expanded=True):
             pas_subjek = st.selectbox("Subjek", ["Siswa", "Guru/Karyawan", "Orang Tua", "Alumni"])
-            pas_masalah = st.selectbox("Jenis Masalah", ["Akademik", "Keluarga", "Pecarian Jati Diri", "Keputusan Besar (Diskresi)", "Kejenuhan/Burnout"])
+            pas_masalah = st.selectbox("Isu Utama", ["Akademik", "Keluarga", "Pecarian Jati Diri", "Keputusan Besar (Diskresi)", "Kejenuhan/Burnout"])
             pas_metode = st.radio("Metode Pendampingan", ["Mendengarkan (Listening)", "Diskresi (Pembedaan Roh)", "Examen (Refleksi Harian)"])
         
         config_details = f"KONFIGURASI PASTORAL: Subjek {pas_subjek}, Masalah {pas_masalah}, Metode {pas_metode}"
@@ -358,7 +428,7 @@ with st.sidebar:
         )
         
     else: 
-        st.markdown("#### 💼 Detail Manajemen")
+        st.markdown("#### 💼 Manajemen Sekolah")
         man_jenis = st.selectbox("Jenis Dokumen", ["Surat Resmi", "Proposal Kegiatan", "Pidato/Sambutan", "Email Internal"])
         man_tone = st.select_slider("Nada Bicara", options=["Tegas & Formal", "Persuasif", "Apresiatif", "Instruktif"])
         man_topik = st.text_input("Topik/Acara", placeholder="Misal: Hari Guru")
@@ -371,16 +441,15 @@ with st.sidebar:
             f"Pastikan struktur dokumen rapi dan sesuai standar institusi pendidikan Jesuit."
         )
 
-    # MODIFIKASI: Tombol Reset & Footer dipindah ke sini (Bawah)
-    st.markdown("---")
-    
-    if st.button("🗑️ Reset Sesi", use_container_width=True): 
+    # FOOTER AREA
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("🔄 Reset Sesi Chat", use_container_width=True): 
         st.session_state.history = []
         st.rerun()
         
     st.markdown("""
-        <div style="text-align: center; margin-top: 20px; color: #64748B; font-size: 12px;">
-            <strong>Magis AI v47.0</strong><br>
+        <div class="sidebar-footer">
+            <strong>Magis AI v48.0</strong><br>
             Design by: Albertus Henny Setyawan<br>
             Kolese Kanisius Jakarta | 2026
         </div>
@@ -392,42 +461,50 @@ with c1:
     st.markdown(f'''
     <div class="magis-title">MAGIS AI</div>
     <div class="magis-tagline">Mitra Diskresi Guru Ignasian</div>
-    <div class="magis-subtitle">Mode: {mode}</div>
+    <div class="magis-badge">Mode Aktif: {mode}</div>
     ''', unsafe_allow_html=True)
 
-with st.expander("📂 Pustaka & Dokumen Pendukung", expanded=False):
-    files = st.file_uploader("Upload RPP/Buku/Materi", accept_multiple_files=True)
-    img_up = st.file_uploader("Analisis Gambar/Soal Visual", type=['png','jpg'])
+with st.expander("📂 Upload Dokumen & Materi Referensi", expanded=False):
+    st.markdown("Upload RPP, E-Book, atau Gambar Soal untuk dianalisis AI.")
+    files = st.file_uploader("Pilih file (PDF, Docx, TXT)", accept_multiple_files=True)
+    img_up = st.file_uploader("Upload Gambar (Jika perlu)", type=['png','jpg'])
     if files:
         t, n = DocEngine.read(files)
         st.session_state.library = {"text": t, "files": n}
-        st.success(f"Masuk Memori: {len(n)} file.")
+        st.success(f"📚 {len(n)} dokumen berhasil dipelajari.")
 
 # --- CHAT DISPLAY ---
-for m in st.session_state.history:
-    st.markdown(f"<div class='{'bubble-user' if m['role']=='user' else 'bubble-ai'}'>{m['content'].replace('[DOC_CONTEXT]','')}</div>", unsafe_allow_html=True)
+# Container khusus untuk chat history agar rapi
+chat_container = st.container()
+with chat_container:
+    for m in st.session_state.history:
+        st.markdown(f"<div class='{'bubble-user' if m['role']=='user' else 'bubble-ai'}'>{m['content'].replace('[DOC_CONTEXT]','')}</div>", unsafe_allow_html=True)
+    
+    # Spacer kosong agar chat tidak tertutup form input
+    st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
 
-# --- SMART INPUT AREA (MENGGANTIKAN CHAT INPUT BIASA) ---
+# --- SMART INPUT AREA (LEBAR & NYAMAN) ---
 st.markdown("---")
-with st.container():
-    # Menggunakan FORM agar lebih terkontrol
-    with st.form(key='smart_input_form', clear_on_submit=True):
-        col_in1, col_in2 = st.columns([6, 1])
-        
-        # KEY TRICK: Menggunakan hash dari template sebagai key
-        # Ini memaksa text_area untuk merefresh value-nya saat sidebar berubah
-        prompt_key = f"input_{hash(auto_prompt_template)}" 
-        
-        with col_in1:
-            user_in = st.text_area(
-                "Instruksi (Otomatis menyesuaikan konfigurasi):", 
-                value=auto_prompt_template, 
-                height=100,
-                key=prompt_key
-            )
-        with col_in2:
-            st.markdown("<br><br>", unsafe_allow_html=True) # Spacer
-            submitted = st.form_submit_button("🚀 KIRIM")
+st.markdown("### ✍️ Area Kerja")
+
+# Menggunakan FORM
+with st.form(key='smart_input_form', clear_on_submit=True):
+    # KEY TRICK: Hash template agar auto-refresh
+    prompt_key = f"input_{hash(auto_prompt_template)}" 
+    
+    # MODIFIKASI: height=250 untuk memperluas area kerja
+    user_in = st.text_area(
+        "Instruksi Detil (Silakan edit draf otomatis di bawah ini):", 
+        value=auto_prompt_template, 
+        height=250, 
+        key=prompt_key
+    )
+    
+    col_act1, col_act2 = st.columns([1, 5])
+    with col_act1:
+        submitted = st.form_submit_button("🚀 KIRIM PERINTAH", use_container_width=True)
+    with col_act2:
+        st.caption("💡 *Tip: Semakin detail instruksi, semakin tajam hasil analisis Ignasian.*")
 
 # LOGIC PEMROSESAN
 if submitted and user_in and provider.is_valid:
@@ -437,7 +514,7 @@ if submitted and user_in and provider.is_valid:
     st.rerun()
 
 if st.session_state.history and st.session_state.history[-1]['role'] == 'user':
-    with st.spinner("Sedang meracik materi Ignatian..."):
+    with st.spinner("✨ Sedang meracik materi dengan perspektif Ignasian..."):
         full_res = ""
         box = st.empty()
         last_usr = st.session_state.history[-1]['content']
@@ -451,5 +528,12 @@ if st.session_state.history and st.session_state.history[-1]['role'] == 'user':
         st.rerun()
 
 if st.session_state.history:
+    st.markdown("### 📥 Ekspor Hasil")
     docx = DocEngine.create_word(st.session_state.history)
-    st.download_button("📥 Download Docx", docx, "Hasil-MagisAI.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    st.download_button(
+        label="Download Dokumen Word (.docx)", 
+        data=docx, 
+        file_name="Hasil-MagisAI.docx", 
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        use_container_width=True
+    )
